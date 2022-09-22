@@ -1,6 +1,12 @@
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "../../users/entities/user.entity";
-import { Wish } from "../../wishes/entities/wish.entity";
+import {
+  Column,
+  Entity,
+  ManyToOne, OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
+import { User } from '../../users/entities/user.entity';
+import { Wish } from '../../wishes/entities/wish.entity';
 
 @Entity()
 export class Offer {
@@ -13,15 +19,15 @@ export class Offer {
   @Column()
   updatedAt: Date;
 
-  // @OneToOne(() => User)
-  // user: User;
-
-  // @OneToOne(() => Wish)
-  // item: Wish; //TODO: что если это просто link из сущности Wish?
-
-  @Column({type: "decimal", scale: 2})
+  @Column({ type: 'decimal', scale: 2 })
   amount: number;
 
-  @Column({default: false})
+  @Column({ default: false })
   hidden: boolean;
+
+  @ManyToOne(() => User, (user) => user.offers)
+  user: User;
+
+  @ManyToOne(() => Wish, (wish) => wish.offers)
+  item: Wish; //TODO: что если это просто link из сущности Wish?
 }
