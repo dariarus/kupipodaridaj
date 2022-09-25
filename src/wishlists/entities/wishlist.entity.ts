@@ -1,7 +1,14 @@
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Length } from 'class-validator';
 import { Wish } from '../../wishes/entities/wish.entity';
-import { User } from "../../users/entities/user.entity";
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Wishlist {

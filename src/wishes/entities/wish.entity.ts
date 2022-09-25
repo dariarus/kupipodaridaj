@@ -9,6 +9,7 @@ import {
 import { IsInt, IsUrl, Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
 import { Offer } from '../../offers/entities/offer.entity';
+import { JoinColumn } from 'typeorm';
 
 @Entity()
 export class Wish {
@@ -50,5 +51,6 @@ export class Wish {
   owner: User;
 
   @OneToMany(() => Offer, (offer) => offer.item)
+  @JoinColumn({ referencedColumnName: 'itemId' })
   offers: Offer[];
 }
