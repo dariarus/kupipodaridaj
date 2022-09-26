@@ -19,7 +19,6 @@ export class OffersService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    console.log(newOffer);
     return this.offerRepository.save(newOffer);
   }
 
