@@ -1,6 +1,12 @@
 import { IsDefined, IsEmail, Length } from 'class-validator';
 import { Offer } from 'src/offers/entities/offer.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Wish } from '../../wishes/entities/wish.entity';
 import { Wishlist } from '../../wishlists/entities/wishlist.entity';
 
@@ -9,10 +15,10 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @CreateDateColumn()
   updatedAt: Date;
 
   @Column({ unique: true })
@@ -20,11 +26,11 @@ export class User {
   @IsDefined()
   username: string;
 
-  @Column({ unique: true, default: 'Пока ничего не рассказал о себе' })
+  @Column({ default: 'Пока ничего не рассказал о себе' })
   @Length(2, 200)
   about: string;
 
-  @Column({ unique: true, default: 'https://i.pravatar.cc/300' })
+  @Column({ default: 'https://i.pravatar.cc/300' })
   avatar: string;
 
   @Column({ unique: true })

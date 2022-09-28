@@ -16,8 +16,6 @@ export class OffersService {
   async create(offer: CreateOfferDto): Promise<Offer> {
     const newOffer = {
       ...offer,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
     return this.offerRepository.save(newOffer);
   }

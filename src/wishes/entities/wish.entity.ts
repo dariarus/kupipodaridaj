@@ -1,10 +1,9 @@
 import {
-  Column,
+  Column, CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { IsInt, IsUrl, Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
@@ -16,10 +15,10 @@ export class Wish {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @CreateDateColumn()
   updatedAt: Date;
 
   @Column()
