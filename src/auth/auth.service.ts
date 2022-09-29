@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Headers, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -20,29 +20,30 @@ export class AuthService {
   }
 
   auth(user: User): { access_token: string } {
-    const payload = { id: user.id };
+    const payload = { sub: user.id };
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  validatePassword(signinUserDto: SigninUserDto, user: User | null) {
-    return bcrypt
-      .compare(signinUserDto.password, user.password)
-      .then((matched) => {
-        if (!matched) {
-          throw new UnauthorizedException();
-        }
-        return this.auth(user);
-      });
-  }
-
-  signin(signinUserDto: SigninUserDto) {
+  validatePassword(username: string, password: string): Promise<User> {
     return this.userRepository
-      .findOneBy({ username: signinUserDto.username })
+      .findOneBy({ username: username })
       .then((user) => {
         if (!user) {
           throw new UnauthorizedException();
         }
-        return this.validatePassword(signinUserDto, user);
+        return bcrypt.compare(password, user.password).then((matched) => {
+          if (!matched) {
+            throw new UnauthorizedException();
+          }
+          return user;
+        });
       });
+  }
+
+  decodeAuthHeader(authHeader: string): { sub: number } {
+    /* В subject токена будем передавать идентификатор пользователя */
+    return this.jwtService.decode(authHeader.split(' ')[1]) as {
+      sub: number;
+    };
   }
 }

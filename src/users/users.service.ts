@@ -9,7 +9,6 @@ import { UserWishesDto } from './dto/user-wishes.dto';
 import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { AuthService } from '../auth/auth.service';
-import { SignupUserResponseDto } from './dto/signup-user-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -60,9 +59,11 @@ export class UsersService {
   }
 
   async findByName(username: string): Promise<UserPublicProfileResponseDto> {
-    return this.userRepository.findOneBy({
-      username: username,
-    });
+    return this.userRepository
+      .findOneBy({
+        username: username,
+      })
+      .then((user) => UserPublicProfileResponseDto.getFromUser(user));
   }
 
   async findMany(findUserDto: FindUsersDto): Promise<UserProfileResponseDto[]> {
@@ -74,12 +75,21 @@ export class UsersService {
         .findBy({
           username: findUserDto.query,
         })
-        .then((usersByName) => usersByEmail.concat(usersByName)),
+        .then((usersByName) => usersByEmail.concat(usersByName))
+        .then((users) =>
+          users.map((user) => UserPublicProfileResponseDto.getFromUser(user)),
+        ),
     );
   }
 
-  async updateOne(id: number, user: UpdateUserDto) {
-    return this.userRepository.update(id, user);
+  async updateOne(id: number, updateUserDto: UpdateUserDto) {
+    const { password } = updateUserDto;
+    if (password) {
+      return this.userRepository.update(id, {
+        ...updateUserDto,
+        password: await this.authService.hashPassword(password),
+      });
+    } else return this.userRepository.update(id, updateUserDto);
   }
 
   async removeOne(id: number) {

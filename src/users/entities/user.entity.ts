@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Wish } from '../../wishes/entities/wish.entity';
 import { Wishlist } from '../../wishlists/entities/wishlist.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
