@@ -98,32 +98,43 @@ export class WishesService {
     return this.wishesRepository.update(id, updateWishDto);
   }
 
-  async updateOne(id: number, updateWishDto: UpdateWishDto, userId: number) {
-    const updatingWish = this.wishesRepository
-      .findOne({
-        where: { id: id },
-        relations: ['offers'],
-      })
-    const user = this.findOne(userId);
-    if ()
-
-    if (updateWishDto.price) {
-      return updatingWish
-        .then((wish) => {
-          if (wish.offers && wish.offers.length) {
-            throw new Error(
-              'Если есть заявки от скидывающихся, цену менять нельзя',
-            );
-          } else {
-            return this.update(id, updateWishDto).then(() => updateWishDto);
-          }
-        });
-    } else {
-      return this.update(id, updateWishDto).then(() => updateWishDto);
-    }
+  async updateOne(
+    wishId: number,
+    updateWishDto: UpdateWishDto,
+    userId: number,
+  ) {
+    this.findOne(wishId).then((updatingWish) => {
+      if (updatingWish.owner.id !== userId) {
+        throw new Error('Нельзя редактировать чужие желания');
+      }
+      if (updatingWish.raised) {
+        throw new Error(
+          'Сумма собранных средств зависит от заявок желающих скинуться',
+        );
+      }
+      if (
+        updateWishDto.price &&
+        updatingWish.offers &&
+        updatingWish.offers.length > 0
+      ) {
+        throw new Error(
+          'Если есть заявки от скидывающихся, цену менять нельзя',
+        );
+      }
+      return this.update(wishId, updateWishDto).then(() => updateWishDto);
+    });
   }
 
-  async removeOne(id: number) {
-    await this.wishesRepository.delete(id);
+  async remove(id: number) {
+    return this.wishesRepository.delete(id);
+  }
+
+  async removeOne(wishId: number, userId) {
+    return this.findOne(wishId).then((wish) => {
+      if (wish.owner.id !== userId) {
+        throw new Error('Нельзя удалять чужие желания');
+      }
+      return this.remove(wishId).then(() => wish);
+    });
   }
 }

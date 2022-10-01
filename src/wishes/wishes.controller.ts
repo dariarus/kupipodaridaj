@@ -57,12 +57,18 @@ export class WishesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWishDto: UpdateWishDto) {
-    return this.wishesService.updateOne(+id, updateWishDto);
+  update(
+    @Headers('authorization') authHeader,
+    @Param('id') id: string,
+    @Body() updateWishDto: UpdateWishDto,
+  ) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+    return this.wishesService.updateOne(+id, updateWishDto, decodedJwt.sub);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.wishesService.removeOne(+id);
+  remove(@Headers('authorization') authHeader, @Param('id') id: string) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+    return this.wishesService.removeOne(+id, decodedJwt.sub);
   }
 }

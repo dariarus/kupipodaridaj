@@ -24,7 +24,10 @@ export class OffersService {
   async create(offer: CreateOfferDto, userId: number): Promise<PublicOfferDto> {
     return this.usersRepository.findOneBy({ id: userId }).then((user) => {
       return this.wishesRepository
-        .findOneBy({ id: offer.itemId })
+        .findOne({
+          where: { id: offer.itemId },
+          relations: ['offers'],
+        })
         .then((wish) => {
           const newOffer = {
             ...offer,
@@ -33,12 +36,26 @@ export class OffersService {
           };
 
           delete newOffer.itemId;
-          return this.offersRepository.save(newOffer).then((createdOffer) => {
-            return {
-              ...createdOffer,
-              user: UserPublicProfileResponseDto.getFromUser(user),
-            };
-          });
+          return this.offersRepository
+            .save(newOffer)
+            .then((createdOffer) => {
+              return {
+                ...createdOffer,
+                user: UserPublicProfileResponseDto.getFromUser(user),
+              };
+            })
+            .then((createdOffer) => {
+              const sum: number =
+                wish.offers.reduce((acc, cur) => acc + cur.amount, 0) +
+                offer.amount;
+              createdOffer.item.raised = sum;
+
+              return this.wishesRepository
+                .update(wish.id, {
+                  raised: sum,
+                })
+                .then(() => createdOffer);
+            });
         });
     });
   }

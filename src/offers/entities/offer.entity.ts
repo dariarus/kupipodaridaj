@@ -9,6 +9,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Wish } from '../../wishes/entities/wish.entity';
 import { IsBoolean, IsDate, IsDecimal, Min } from 'class-validator';
+import { ColumnNumericTransformer } from '../../utils/column-numeric-transformer';
 
 @Entity()
 export class Offer {
@@ -23,7 +24,11 @@ export class Offer {
   @IsDate()
   updatedAt: Date;
 
-  @Column({ type: 'decimal', scale: 2 })
+  @Column({
+    type: 'decimal',
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
   @IsDecimal()
   @Min(0)
   amount: number;
@@ -32,10 +37,10 @@ export class Offer {
   @IsBoolean()
   hidden: boolean;
 
-  @ManyToOne(() => Wish, (wish) => wish.offers)
+  @ManyToOne(() => Wish, (wish) => wish.offers, { onDelete: 'CASCADE' })
   @JoinColumn()
   item: Wish;
 
-  @ManyToOne(() => User, (user) => user.offers)
+  @ManyToOne(() => User, (user) => user.offers, { onDelete: 'CASCADE' })
   user: User;
 }
