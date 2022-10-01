@@ -37,6 +37,20 @@ export class WishesController {
     return this.wishesService.findAll();
   }
 
+  @Get('last')
+  findLast(@Headers('authorization') authHeader) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+
+    return this.wishesService.findLast(decodedJwt.sub);
+  }
+
+  @Get('top')
+  findTop(@Headers('authorization') authHeader) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+
+    return this.wishesService.findTop(decodedJwt.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.wishesService.findOne(+id);

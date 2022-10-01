@@ -5,7 +5,8 @@ import {
   Body,
   Patch,
   Param,
-  Delete, Headers
+  Delete,
+  Headers,
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { Offer } from './entities/offer.entity';

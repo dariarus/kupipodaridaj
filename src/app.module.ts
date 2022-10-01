@@ -31,6 +31,7 @@ dotenv.config();
       database: 'kupipodariday',
       entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
+      logging: ['query'],
     }),
     UsersModule,
     WishesModule,

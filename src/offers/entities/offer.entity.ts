@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -32,6 +33,7 @@ export class Offer {
   hidden: boolean;
 
   @ManyToOne(() => Wish, (wish) => wish.offers)
+  @JoinColumn()
   item: Wish;
 
   @ManyToOne(() => User, (user) => user.offers)

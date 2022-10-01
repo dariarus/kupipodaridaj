@@ -60,9 +60,8 @@ export class UsersController {
 
   @Get(':username/wishes')
   getWishes(@Param('username') username: string) {
-    return this.usersService
-      .findByName(username)
-      .then((user) => this.usersService.getWishes(user.username));
+    console.log(username);
+    return this.usersService.getWishes(username);
   }
 
   @Get(':username')

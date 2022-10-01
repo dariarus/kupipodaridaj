@@ -10,10 +10,11 @@ import { JwtStrategy } from './passport/jwt-strategy';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './passport/passport-strategy';
+import { Wish } from '../wishes/entities/wish.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Wish]),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

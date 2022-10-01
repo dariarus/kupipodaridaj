@@ -9,22 +9,25 @@ import { UserWishesDto } from './dto/user-wishes.dto';
 import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { AuthService } from '../auth/auth.service';
+import { Wish } from '../wishes/entities/wish.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(Wish)
+    private readonly wishesRepository: Repository<Wish>,
     private readonly authService: AuthService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { password } = createUserDto;
-    const user = await this.userRepository.create({
+    const user = await this.usersRepository.create({
       ...createUserDto,
       password: await this.authService.hashPassword(password),
     });
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   // async create(user: CreateUserDto): Promise<SignupUserResponseDto> {
@@ -49,17 +52,17 @@ export class UsersService {
   // }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.usersRepository.find();
   }
 
   async findOne(id: number): Promise<UserPublicProfileResponseDto> {
-    return this.userRepository.findOneBy({
+    return this.usersRepository.findOneBy({
       id: id,
     });
   }
 
   async findByName(username: string): Promise<UserPublicProfileResponseDto> {
-    return this.userRepository
+    return this.usersRepository
       .findOneBy({
         username: username,
       })
@@ -67,11 +70,11 @@ export class UsersService {
   }
 
   async findMany(findUserDto: FindUsersDto): Promise<UserProfileResponseDto[]> {
-    const byEmail = this.userRepository.findBy({
+    const byEmail = this.usersRepository.findBy({
       email: findUserDto.query,
     });
     return byEmail.then((usersByEmail) =>
-      this.userRepository
+      this.usersRepository
         .findBy({
           username: findUserDto.query,
         })
@@ -85,21 +88,34 @@ export class UsersService {
   async updateOne(id: number, updateUserDto: UpdateUserDto) {
     const { password } = updateUserDto;
     if (password) {
-      return this.userRepository.update(id, {
+      return this.usersRepository.update(id, {
         ...updateUserDto,
         password: await this.authService.hashPassword(password),
       });
-    } else return this.userRepository.update(id, updateUserDto);
+    } else return this.usersRepository.update(id, updateUserDto);
   }
 
   async removeOne(id: number) {
-    await this.userRepository.delete(id);
+    await this.usersRepository.delete(id);
   }
 
   async getWishes(username: string): Promise<UserWishesDto[]> {
-    const userPromise = this.userRepository.findOneBy({
-      username: username,
-    });
-    return userPromise.then((user) => user.wishes);
+    return this.usersRepository
+      .findOne({
+        where: { username: username },
+        select: ['wishes'],
+        relations: ['wishes'],
+      })
+      .then((user) => {
+        return user.wishes;
+      });
+    // const wishesPromise = this.wishesRepository.findBy({
+    //   owner.username: username
+    // });
+    // console.log(username);
+    // return await userPromise.then((user) => {
+    //   console.log(user.wishes);
+    //   return user.wishes
+    // });
   }
 }

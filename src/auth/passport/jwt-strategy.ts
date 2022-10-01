@@ -2,14 +2,17 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../users/users.service';
-import jwt from 'jsonwebtoken';
+import { UserPublicProfileResponseDto } from '../../users/dto/user-public-profile-response.dto';
+import { User } from '../../users/entities/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private usersService: UsersService,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {
     super({
       /* Указываем, что токен будет передаваться в заголовке Authorization в формате Bearer <token> */
@@ -23,9 +26,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * Метод validate должен вернуть данные пользователя
    * В JWT стратегии в качестве параметра метод получает полезную нагрузку из токена
    */
-  async validate(jwtPayload: { sub: number }) {
+  async validate(jwtPayload: {
+    sub: number;
+  }): Promise<UserPublicProfileResponseDto> {
     /* В subject токена будем передавать идентификатор пользователя */
-    const user = this.usersService.findOne(jwtPayload.sub);
+    const user = this.usersRepository.findOne({
+      where: { id: jwtPayload.sub },
+      select: ['id'],
+    });
     if (!user) {
       throw new UnauthorizedException();
     }
