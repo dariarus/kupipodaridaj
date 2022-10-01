@@ -4,6 +4,7 @@ import { User } from '../entities/user.entity';
 import { OmitType } from '@nestjs/mapped-types';
 
 export class UserPublicProfileResponseDto extends OmitType(CreateUserDto, [
+  'email',
   'password',
 ]) {
   @IsInt()
@@ -13,7 +14,6 @@ export class UserPublicProfileResponseDto extends OmitType(CreateUserDto, [
     return {
       id: user.id,
       username: user.username,
-      email: user.email,
       about: user.about,
       avatar: user.avatar,
     };

@@ -1,15 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Headers,
+} from '@nestjs/common';
 import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
+import { JwtGuard } from '../auth/passport/jwt-guard';
+import { AuthService } from '../auth/auth.service';
 
+@UseGuards(JwtGuard)
 @Controller('wishes')
 export class WishesController {
-  constructor(private readonly wishesService: WishesService) {}
+  constructor(
+    private readonly wishesService: WishesService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
-  create(@Body() createWishDto: CreateWishDto) {
-    return this.wishesService.create(createWishDto);
+  create(
+    @Headers('authorization') authHeader,
+    @Body() createWishDto: CreateWishDto,
+  ) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+    return this.wishesService.create(createWishDto, decodedJwt.sub);
   }
 
   @Get()

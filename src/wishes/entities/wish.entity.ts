@@ -1,9 +1,10 @@
 import {
-  Column, CreateDateColumn,
+  Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { IsInt, IsUrl, Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
@@ -35,14 +36,14 @@ export class Wish {
   @Column({ type: 'decimal', scale: 2 })
   price: number;
 
-  @Column({ type: 'decimal', scale: 2 })
+  @Column({ type: 'decimal', scale: 2, default: 0 })
   raised: number;
 
   @Column()
   @Length(1, 1024)
   description: string;
 
-  @Column()
+  @Column({ default: 0 })
   @IsInt()
   copied: number;
 
@@ -50,6 +51,5 @@ export class Wish {
   owner: User;
 
   @OneToMany(() => Offer, (offer) => offer.item)
-  @JoinColumn({ referencedColumnName: 'itemId' })
   offers: Offer[];
 }

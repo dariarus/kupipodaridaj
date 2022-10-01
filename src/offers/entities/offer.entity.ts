@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Wish } from '../../wishes/entities/wish.entity';
 import { IsBoolean, IsDate, IsDecimal, Min } from 'class-validator';
@@ -24,9 +30,6 @@ export class Offer {
   @Column({ default: false })
   @IsBoolean()
   hidden: boolean;
-
-  @Column()
-  itemId: number;
 
   @ManyToOne(() => Wish, (wish) => wish.offers)
   item: Wish;

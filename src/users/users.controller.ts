@@ -37,9 +37,7 @@ export class UsersController {
 
   @Get('me')
   findOwn(@Headers('authorization') authHeader) {
-    console.log(authHeader);
     const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    console.log(decodedJwt);
     return this.usersService.findOne(decodedJwt.sub);
   }
 
@@ -50,6 +48,21 @@ export class UsersController {
   ) {
     const decodedJwt = this.authService.decodeAuthHeader(authHeader);
     return this.usersService.updateOne(+decodedJwt.sub, updateUserDto);
+  }
+
+  @Get('me/wishes')
+  getOwnWishes(@Headers('authorization') authHeader) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+    return this.usersService
+      .findOne(decodedJwt.sub)
+      .then((user) => this.usersService.getWishes(user.username));
+  }
+
+  @Get(':username/wishes')
+  getWishes(@Param('username') username: string) {
+    return this.usersService
+      .findByName(username)
+      .then((user) => this.usersService.getWishes(user.username));
   }
 
   @Get(':username')

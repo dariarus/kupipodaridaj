@@ -5,18 +5,27 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
+  Delete, Headers
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { Offer } from './entities/offer.entity';
+import { CreateOfferDto } from './dto/create-offer.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('offers')
 export class OffersController {
-  constructor(private readonly offersService: OffersService) {}
+  constructor(
+    private readonly offersService: OffersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
-  create(@Body() newOffer: Offer) {
-    return this.offersService.create(newOffer);
+  create(
+    @Headers('authorization') authHeader,
+    @Body() newOffer: CreateOfferDto,
+  ) {
+    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+    return this.offersService.create(newOffer, decodedJwt.sub);
   }
 
   @Get()

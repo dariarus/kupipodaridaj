@@ -77,7 +77,7 @@ export class UsersService {
         })
         .then((usersByName) => usersByEmail.concat(usersByName))
         .then((users) =>
-          users.map((user) => UserPublicProfileResponseDto.getFromUser(user)),
+          users.map((user) => UserProfileResponseDto.getFromUser(user)),
         ),
     );
   }
