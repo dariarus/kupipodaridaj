@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service';
 import { UserProfile } from '../users/users.automapper';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './passport/jwt-strategy';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './passport/passport-strategy';
 import { Wish } from '../wishes/entities/wish.entity';

@@ -4,7 +4,7 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 import { IsInt, IsUrl, Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
@@ -20,7 +20,7 @@ export class Wish {
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   updatedAt: Date;
 
   @Column()
@@ -34,14 +34,18 @@ export class Wish {
   @IsUrl()
   image: string;
 
-  @Column({ type: 'decimal', scale: 2 })
+  @Column({
+    type: 'decimal',
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
   price: number;
 
   @Column({
     type: 'decimal',
     scale: 2,
     default: 0,
-    transformer: new ColumnNumericTransformer(),
+    transformer: new ColumnNumericTransformer(), // из строки в десятичную дробь (число)
   })
   raised: number;
 

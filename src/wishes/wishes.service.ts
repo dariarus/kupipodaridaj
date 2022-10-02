@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,13 +18,17 @@ export class WishesService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(wish: CreateWishDto, userId: number): Promise<any> {
+  async create(createWishDto: CreateWishDto) {
+    return this.wishesRepository.save(createWishDto);
+  }
+
+  async createOne(wish: CreateWishDto, userId: number): Promise<any> {
     return this.usersRepository.findOneBy({ id: userId }).then((user) => {
       const newWish = {
         ...wish,
         owner: user,
       };
-      return this.wishesRepository.save(newWish).then((createdWish) => {
+      return this.create(newWish).then((createdWish) => {
         return {
           ...createdWish,
           owner: UserPublicProfileResponseDto.getFromUser(user),
@@ -43,53 +47,57 @@ export class WishesService {
         where: {
           id: id,
         },
-        relations: ['owner', 'offers'],
+        relations: ['owner', 'offers', 'offers.user'],
       })
       .then((wish) => {
         const selectedWish = wish;
         return {
           ...selectedWish,
           owner: UserProfileResponseDto.getFromUser(selectedWish.owner),
+          offers: selectedWish.offers.map((offer) => {
+            return {
+              ...offer,
+              user: UserProfileResponseDto.getFromUser(offer.user),
+            };
+          }),
         };
       });
   }
 
-  async findLast(userId: number): Promise<any> {
+  async findLast(): Promise<any> {
     return this.wishesRepository
       .find({
         relations: ['owner'],
-        where: { owner: { id: userId } },
         order: { id: 'desc' },
-        take: 1,
+        take: 10,
       })
       .then((wishes) => {
         if (wishes && wishes.length !== 0) {
-          const lastUsersWish = wishes[0];
-          return {
-            ...lastUsersWish,
-            owner: UserProfileResponseDto.getFromUser(lastUsersWish.owner),
-          };
+          return wishes.map((wish) => {
+            return {
+              ...wish,
+              owner: UserProfileResponseDto.getFromUser(wish.owner),
+            };
+          });
         }
       });
   }
 
-  async findTop(userId: number): Promise<any> {
+  async findTop(): Promise<any> {
     return this.wishesRepository
       .find({
         relations: ['owner'],
-        where: { owner: { id: userId } },
-        order: { id: 'asc' },
-        take: 1,
+        order: { copied: 'desc' },
+        take: 10,
       })
       .then((wishes) => {
         if (wishes && wishes.length !== 0) {
-          const firstUsersWish = wishes[0];
-          return {
-            ...firstUsersWish,
-            owner: UserPublicProfileResponseDto.getFromUser(
-              firstUsersWish.owner,
-            ),
-          };
+          return wishes.map((wish) => {
+            return {
+              ...wish,
+              owner: UserProfileResponseDto.getFromUser(wish.owner),
+            };
+          });
         }
       });
   }
@@ -105,10 +113,10 @@ export class WishesService {
   ) {
     this.findOne(wishId).then((updatingWish) => {
       if (updatingWish.owner.id !== userId) {
-        throw new Error('Нельзя редактировать чужие желания');
+        throw new ForbiddenException('Нельзя редактировать чужие желания');
       }
       if (updatingWish.raised) {
-        throw new Error(
+        throw new ForbiddenException(
           'Сумма собранных средств зависит от заявок желающих скинуться',
         );
       }
@@ -117,11 +125,34 @@ export class WishesService {
         updatingWish.offers &&
         updatingWish.offers.length > 0
       ) {
-        throw new Error(
+        throw new ForbiddenException(
           'Если есть заявки от скидывающихся, цену менять нельзя',
         );
       }
       return this.update(wishId, updateWishDto).then(() => updateWishDto);
+    });
+  }
+
+  async copyWish(wishId: number, userId: number) {
+    return this.findOne(wishId).then((wish) => {
+      const counter = wish.copied + 1;
+      return this.wishesRepository
+        .update(wishId, {
+          copied: counter,
+        })
+        .then(() => {
+          return this.usersRepository.findOneBy({ id: userId }).then((user) => {
+            const copiedWish = {
+              ...wish,
+              owner: UserPublicProfileResponseDto.getFromUser(user),
+              copied: 0,
+              raised: 0,
+              offers: [],
+            };
+            delete copiedWish.id;
+            return this.wishesRepository.save(copiedWish);
+          });
+        });
     });
   }
 
@@ -132,7 +163,7 @@ export class WishesService {
   async removeOne(wishId: number, userId) {
     return this.findOne(wishId).then((wish) => {
       if (wish.owner.id !== userId) {
-        throw new Error('Нельзя удалять чужие желания');
+        throw new ForbiddenException('Нельзя удалять чужие желания');
       }
       return this.remove(wishId).then(() => wish);
     });

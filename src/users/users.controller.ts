@@ -7,14 +7,13 @@ import {
   Param,
   Delete,
   UseGuards,
-  Headers,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { JwtGuard } from '../auth/passport/jwt-guard';
-import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)
@@ -36,25 +35,19 @@ export class UsersController {
   }
 
   @Get('me')
-  findOwn(@Headers('authorization') authHeader) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    return this.usersService.findOne(decodedJwt.sub);
+  findOwn(@Req() req) {
+    return this.usersService.findOne(req.user.id);
   }
 
   @Patch('me')
-  update(
-    @Headers('authorization') authHeader,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    return this.usersService.updateOne(+decodedJwt.sub, updateUserDto);
+  update(@Req() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.updateOne(+req.user.id, updateUserDto);
   }
 
   @Get('me/wishes')
-  getOwnWishes(@Headers('authorization') authHeader) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
+  getOwnWishes(@Req() req) {
     return this.usersService
-      .findOne(decodedJwt.sub)
+      .findOne(req.user.id)
       .then((user) => this.usersService.getWishes(user.username));
   }
 

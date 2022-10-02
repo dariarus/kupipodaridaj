@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  Headers,
+  Req,
 } from '@nestjs/common';
 import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
@@ -24,12 +24,8 @@ export class WishesController {
   ) {}
 
   @Post()
-  create(
-    @Headers('authorization') authHeader,
-    @Body() createWishDto: CreateWishDto,
-  ) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    return this.wishesService.create(createWishDto, decodedJwt.sub);
+  create(@Req() req, @Body() createWishDto: CreateWishDto) {
+    return this.wishesService.createOne(createWishDto, req.user.id);
   }
 
   @Get()
@@ -38,17 +34,13 @@ export class WishesController {
   }
 
   @Get('last')
-  findLast(@Headers('authorization') authHeader) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-
-    return this.wishesService.findLast(decodedJwt.sub);
+  findLast() {
+    return this.wishesService.findLast();
   }
 
   @Get('top')
-  findTop(@Headers('authorization') authHeader) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-
-    return this.wishesService.findTop(decodedJwt.sub);
+  findTop() {
+    return this.wishesService.findTop();
   }
 
   @Get(':id')
@@ -58,17 +50,20 @@ export class WishesController {
 
   @Patch(':id')
   update(
-    @Headers('authorization') authHeader,
+    @Req() req,
     @Param('id') id: string,
     @Body() updateWishDto: UpdateWishDto,
   ) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    return this.wishesService.updateOne(+id, updateWishDto, decodedJwt.sub);
+    return this.wishesService.updateOne(+id, updateWishDto, req.user.id);
+  }
+
+  @Post(':id/copy')
+  copyWish(@Req() req, @Param('id') id: string) {
+    return this.wishesService.copyWish(+id, req.user.id);
   }
 
   @Delete(':id')
-  remove(@Headers('authorization') authHeader, @Param('id') id: string) {
-    const decodedJwt = this.authService.decodeAuthHeader(authHeader);
-    return this.wishesService.removeOne(+id, decodedJwt.sub);
+  remove(@Req() req, @Param('id') id: string) {
+    return this.wishesService.removeOne(+id, req.user.id);
   }
 }
