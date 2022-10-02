@@ -11,17 +11,12 @@ import { User } from './users/entities/user.entity';
 import { Wish } from './wishes/entities/wish.entity';
 import { Wishlist } from './wishlists/entities/wishlist.entity';
 import { AuthModule } from './auth/auth.module';
-import { AutomapperModule } from '@automapper/nestjs';
-import { classes } from '@automapper/classes';
 import dotenv = require('dotenv');
 
 dotenv.config();
 
 @Module({
   imports: [
-    AutomapperModule.forRoot({
-      strategyInitializer: classes(),
-    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
