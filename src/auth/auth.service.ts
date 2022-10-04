@@ -20,7 +20,9 @@ export class AuthService {
 
   auth(user: User): { access_token: string } {
     const payload = { sub: user.id };
-    return { access_token: this.jwtService.sign(payload) };
+    return {
+      access_token: this.jwtService.sign(payload, { expiresIn: '30m' }),
+    };
   }
 
   validatePassword(username: string, password: string): Promise<User> {
@@ -28,11 +30,11 @@ export class AuthService {
       .findOneBy({ username: username })
       .then((user) => {
         if (!user) {
-          throw new UnauthorizedException();
+          throw new UnauthorizedException('Неверные логин или пароль');
         }
         return bcrypt.compare(password, user.password).then((matched) => {
           if (!matched) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Неверные логин или пароль');
           }
           return user;
         });

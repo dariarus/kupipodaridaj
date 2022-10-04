@@ -4,7 +4,6 @@ import { User } from '../users/entities/user.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { UserProfile } from '../users/users.automapper';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './passport/jwt-strategy';
 import { JwtModule } from '@nestjs/jwt';
@@ -15,7 +14,7 @@ import { Wish } from '../wishes/entities/wish.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Wish]),
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -23,12 +22,12 @@ import { Wish } from '../wishes/entities/wish.entity';
       }),
       inject: [ConfigService],
     }),
+    ConfigModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
     UsersService,
-    UserProfile,
     JwtStrategy,
     LocalStrategy,
     ConfigService,
