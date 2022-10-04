@@ -1,8 +1,8 @@
 {
   "name": "kupipodariday",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Приложение для сбора средств на подарки друг другу",
+  "author": "Daria R",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
