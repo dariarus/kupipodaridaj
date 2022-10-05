@@ -15,8 +15,6 @@ export class CreateUserDto {
   username: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
   @MaxLength(200)
   about = 'Пока ничего не рассказал о себе';
 

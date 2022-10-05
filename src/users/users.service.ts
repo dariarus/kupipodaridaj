@@ -8,7 +8,6 @@ import { FindUsersDto } from './dto/find-users.dto';
 import { UserWishesDto } from './dto/user-wishes.dto';
 import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
-import { AuthService } from '../auth/auth.service';
 import { Wish } from '../wishes/entities/wish.entity';
 import { hashPassword } from '../utils/password-utils';
 

@@ -7,7 +7,6 @@ export class EmailSenderService {
   private transporter;
 
   constructor(private readonly configService: ConfigService) {
-    console.log(configService);
     this.transporter = nodemailer.createTransport({
       pool: configService.get<string>('EMAIL_POOL'),
       host: configService.get<string>('EMAIL_HOST'),

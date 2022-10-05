@@ -6,29 +6,21 @@ import { UsersModule } from './users/users.module';
 import { WishesModule } from './wishes/wishes.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { OffersModule } from './offers/offers.module';
-import { Offer } from './offers/entities/offer.entity';
-import { User } from './users/entities/user.entity';
-import { Wish } from './wishes/entities/wish.entity';
-import { Wishlist } from './wishlists/entities/wishlist.entity';
 import { AuthModule } from './auth/auth.module';
 import dotenv = require('dotenv');
 import { EmailSenderModule } from './email-sender/email-sender.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import database from './config/database';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'student',
-      password: 'student',
-      database: 'kupipodariday',
-      entities: [User, Wish, Wishlist, Offer],
-      synchronize: true,
-      logging: ['query'],
+    ConfigModule.forRoot({ load: [database] }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => config.get('database'),
+      inject: [ConfigService],
     }),
     UsersModule,
     WishesModule,
