@@ -10,6 +10,7 @@ import { UserPublicProfileResponseDto } from './dto/user-public-profile-response
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { AuthService } from '../auth/auth.service';
 import { Wish } from '../wishes/entities/wish.entity';
+import { hashPassword } from '../utils/password-utils';
 
 @Injectable()
 export class UsersService {
@@ -18,14 +19,13 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Wish)
     private readonly wishesRepository: Repository<Wish>,
-    private readonly authService: AuthService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { password } = createUserDto;
     const user = await this.usersRepository.create({
       ...createUserDto,
-      password: await this.authService.hashPassword(password),
+      password: await hashPassword(password),
     });
     return this.usersRepository.save(user);
   }
@@ -61,12 +61,20 @@ export class UsersService {
     });
   }
 
-  async findByName(username: string): Promise<UserPublicProfileResponseDto> {
+  async findByNamePublic(
+    username: string,
+  ): Promise<UserPublicProfileResponseDto> {
     return this.usersRepository
       .findOneBy({
         username: username,
       })
       .then((user) => UserPublicProfileResponseDto.getFromUser(user));
+  }
+
+  async findByName(username: string): Promise<User> {
+    return this.usersRepository.findOneBy({
+      username: username,
+    });
   }
 
   async findMany(findUserDto: FindUsersDto): Promise<UserProfileResponseDto[]> {
@@ -90,7 +98,7 @@ export class UsersService {
     if (password) {
       return this.usersRepository.update(id, {
         ...updateUserDto,
-        password: await this.authService.hashPassword(password),
+        password: await hashPassword(password),
       });
     } else return this.usersRepository.update(id, updateUserDto);
   }

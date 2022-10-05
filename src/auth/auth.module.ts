@@ -5,10 +5,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './passport/jwt-strategy';
+import { JwtStrategy } from './passport/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LocalStrategy } from './passport/passport-strategy';
+import { LocalStrategy } from './passport/local.strategy';
 import { Wish } from '../wishes/entities/wish.entity';
 
 @Module({
@@ -19,6 +19,7 @@ import { Wish } from '../wishes/entities/wish.entity';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '30m' },
       }),
       inject: [ConfigService],
     }),

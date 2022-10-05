@@ -12,7 +12,7 @@ import {
 import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
-import { JwtGuard } from '../auth/passport/jwt-guard';
+import { JwtGuard } from '../auth/passport/jwt.guard';
 import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)

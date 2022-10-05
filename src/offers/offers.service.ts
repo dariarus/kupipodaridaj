@@ -13,7 +13,7 @@ import { Wish } from '../wishes/entities/wish.entity';
 import { User } from '../users/entities/user.entity';
 import { UserPublicProfileResponseDto } from '../users/dto/user-public-profile-response.dto';
 import { PublicOfferDto } from './dto/public-offer.dto';
-import { JwtGuard } from '../auth/passport/jwt-guard';
+import { JwtGuard } from '../auth/passport/jwt.guard';
 import { EmailSenderService } from '../email-sender/email-sender.service';
 
 @UseGuards(JwtGuard)

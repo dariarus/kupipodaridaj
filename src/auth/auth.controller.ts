@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { AuthService } from './auth.service';
-import { LocalGuard } from './passport/passport-guard';
+import { LocalGuard } from './passport/local.guard';
 import { EmailSenderService } from '../email-sender/email-sender.service';
 
 @Controller('')
@@ -13,10 +13,9 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  signup(@Body() createUserDto: CreateUserDto) {
-    return this.usersService
-      .create(createUserDto)
-      .then((user) => this.authService.auth(user));
+  async signup(@Body() createUserDto: CreateUserDto) {
+    const user = await this.usersService.create(createUserDto);
+    return this.authService.auth(user);
   }
 
   @UseGuards(LocalGuard)

@@ -5,40 +5,38 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
+import { UserPublicProfileResponseDto } from '../users/dto/user-public-profile-response.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
-
-  hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
-  }
 
   auth(user: User): { access_token: string } {
     const payload = { sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload, { expiresIn: '30m' }),
+      access_token: this.jwtService.sign(payload),
     };
   }
 
-  validatePassword(username: string, password: string): Promise<User> {
-    return this.userRepository
-      .findOneBy({ username: username })
-      .then((user) => {
-        if (!user) {
+  validatePassword(
+    username: string,
+    password: string,
+  ): Promise<UserPublicProfileResponseDto> {
+    return this.usersService.findByName(username).then((user) => {
+      if (!user) {
+        throw new UnauthorizedException('Неверные логин или пароль');
+      }
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
           throw new UnauthorizedException('Неверные логин или пароль');
         }
-        return bcrypt.compare(password, user.password).then((matched) => {
-          if (!matched) {
-            throw new UnauthorizedException('Неверные логин или пароль');
-          }
-          return user;
-        });
+        return user;
       });
+    });
   }
 
   decodeAuthHeader(authHeader: string): { sub: number } {

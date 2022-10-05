@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
-import { JwtGuard } from '../auth/passport/jwt-guard';
+import { JwtGuard } from '../auth/passport/jwt.guard';
 
 @UseGuards(JwtGuard)
 @Controller('offers')

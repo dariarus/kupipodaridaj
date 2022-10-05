@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
-import { JwtGuard } from '../auth/passport/jwt-guard';
+import { JwtGuard } from '../auth/passport/jwt.guard';
 import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)
@@ -59,7 +59,7 @@ export class UsersController {
 
   @Get(':username')
   findOne(@Param('username') username: string) {
-    return this.usersService.findByName(username);
+    return this.usersService.findByNamePublic(username);
   }
 
   @Post('find')

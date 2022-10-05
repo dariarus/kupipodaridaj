@@ -8,10 +8,11 @@ import { User } from '../users/entities/user.entity';
 import { Wish } from '../wishes/entities/wish.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailSenderService } from '../email-sender/email-sender.service';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Offer, Wish, User]), JwtModule],
   controllers: [OffersController],
-  providers: [OffersService, AuthService, EmailSenderService],
+  providers: [OffersService, AuthService, UsersService, EmailSenderService],
 })
 export class OffersModule {}

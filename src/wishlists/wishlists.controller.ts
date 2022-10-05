@@ -12,7 +12,7 @@ import {
 import { WishlistsService } from './wishlists.service';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
-import { JwtGuard } from '../auth/passport/jwt-guard';
+import { JwtGuard } from '../auth/passport/jwt.guard';
 import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)
