@@ -1,9 +1,7 @@
 import * as bcrypt from 'bcrypt';
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { UserPublicProfileResponseDto } from '../users/dto/user-public-profile-response.dto';
@@ -22,21 +20,19 @@ export class AuthService {
     };
   }
 
-  validatePassword(
+  async validatePassword(
     username: string,
     password: string,
   ): Promise<UserPublicProfileResponseDto> {
-    return this.usersService.findByName(username).then((user) => {
-      if (!user) {
-        throw new UnauthorizedException('Неверные логин или пароль');
-      }
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          throw new UnauthorizedException('Неверные логин или пароль');
-        }
-        return user;
-      });
-    });
+    const user = await this.usersService.findByName(username);
+    if (!user) {
+      throw new UnauthorizedException('Неверные логин или пароль');
+    }
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new UnauthorizedException('Неверные логин или пароль');
+    }
+    return user;
   }
 
   decodeAuthHeader(authHeader: string): { sub: number } {

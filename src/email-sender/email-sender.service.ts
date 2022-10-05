@@ -1,15 +1,21 @@
 import nodemailer = require('nodemailer');
+import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class EmailSenderService {
-  constructor(private transporter) {
+  private transporter;
+
+  constructor(private readonly configService: ConfigService) {
+    console.log(configService);
     this.transporter = nodemailer.createTransport({
-      pool: true,
-      host: 'smtp.yandex.ru',
-      port: 465,
-      secure: true, // use TLS
+      pool: configService.get<string>('EMAIL_POOL'),
+      host: configService.get<string>('EMAIL_HOST'),
+      port: configService.get<string>('EMAIL_PORT'),
+      secure: configService.get<string>('EMAIL_SECURE'),
       auth: {
-        user: 'kirena001829',
-        pass: 'fthftbatowxpuyyw',
+        user: configService.get<string>('EMAIL_USER'),
+        pass: configService.get<string>('EMAIL_PASS'),
       },
     });
   }
