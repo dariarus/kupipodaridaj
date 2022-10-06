@@ -37,70 +37,55 @@ export class OffersService {
     offer: CreateOfferDto,
     userId: number,
   ): Promise<PublicOfferDto> {
-    return this.usersRepository
-      .findOneBy({ id: userId })
-      .then((currentUser) => {
-        return this.wishesRepository
-          .findOne({
-            where: { id: offer.itemId },
-            relations: ['offers', 'owner', 'offers.user'],
-          })
-          .then((wish) => {
-            console.log(wish);
-            if (!wish) {
-              throw new ForbiddenException('Такое желание не найдено');
-            }
-            if (wish.owner.id === userId) {
-              throw new ForbiddenException(
-                'Нельзя вносить деньги на собственные желания',
-              );
-            }
-            const newOffer = {
-              ...offer,
-              item: wish,
-              user: currentUser,
-            };
-
-            delete newOffer.itemId;
-
-            const sum: number =
-              wish.offers.reduce((acc, cur) => acc + cur.amount, 0) +
-              offer.amount;
-            if (sum > wish.price) {
-              throw new ForbiddenException(
-                'Сумма средств не может превышать стоимость подарка',
-              );
-            } else if (sum === wish.price) {
-              console.log('сумма собрана');
-              const emails = wish.offers.map((offer) => offer.user.email);
-              emails.push(currentUser.email);
-              const uniqueEmails = [...new Set(emails)];
-              console.log(uniqueEmails);
-              this.mailService.sendEmail(
-                uniqueEmails,
-                'Сумма собрана!',
-                '',
-                `<img src="${wish.image}">
-                      <h1>Поздравляем! Сумма на подарок собрана! <a href="${wish.link}"></a></h1>
-                      <p>Вот список пользователей, которые помогли собрать средства: ${uniqueEmails},</p>`,
-              );
-            }
-            wish.raised = Math.round(sum * 1000) / 1000; // округлить до сотых в ответе
-
-            return this.wishesRepository
-              .update(wish.id, {
-                raised: sum,
-              })
-              .then(() => {
-                return this.create(newOffer).then((createdOffer) => {
-                  return {
-                    ...createdOffer,
-                    user: UserPublicProfileResponseDto.getFromUser(currentUser),
-                  };
-                });
-              });
-          });
-      });
+    const currentUser = await this.usersRepository.findOneBy({ id: userId });
+    const wish = await this.wishesRepository.findOne({
+      where: { id: offer.itemId },
+      relations: ['offers', 'owner', 'offers.user'],
+    });
+    console.log(wish);
+    if (!wish) {
+      throw new ForbiddenException('Такое желание не найдено');
+    }
+    if (wish.owner.id === userId) {
+      throw new ForbiddenException(
+        'Нельзя вносить деньги на собственные желания',
+      );
+    }
+    const newOffer = {
+      ...offer,
+      item: wish,
+      user: currentUser,
+    };
+    delete newOffer.itemId;
+    const sum: number =
+      wish.offers.reduce((acc, cur) => acc + cur.amount, 0) + offer.amount;
+    if (sum > wish.price) {
+      throw new ForbiddenException(
+        'Сумма средств не может превышать стоимость подарка',
+      );
+    } else if (sum === wish.price) {
+      const emails = wish.offers.map((offer) => offer.user.email);
+      emails.push(currentUser.email);
+      const uniqueEmails = [...new Set(emails)];
+      await this.mailService.sendEmail(
+        uniqueEmails,
+        'Сумма собрана!',
+        '',
+        `<img src="${wish.image}" alt="Изображение подарка">
+                      <h1>Поздравляем! Сумма на подарок собрана!</h1>
+                      <p>Ссылка на подарок в магазине: <a href=${wish.link}></a></p>
+                      <p>Вот список пользователей, которые помогли собрать средства: ${uniqueEmails}</p>`,
+      );
+    }
+    wish.raised = Math.round(sum * 1000) / 1000;
+    await this.wishesRepository.update(wish.id, {
+      raised: sum,
+    });
+    const createdOffer = await this.create(newOffer);
+    return {
+      ...createdOffer,
+      user: UserPublicProfileResponseDto.getFromUser(currentUser),
+    };
   }
 
   async findAll(userId: number): Promise<Offer[]> {
@@ -112,22 +97,19 @@ export class OffersService {
   }
 
   async findOne(id: number, userId: number): Promise<PublicOfferDto> {
-    return this.offersRepository
-      .findOne({
-        where: {
-          id: id,
-        },
-        relations: ['user'],
-      })
-      .then((offer) => {
-        if (offer.user.id !== userId) {
-          throw new UnauthorizedException();
-        }
-        return {
-          ...offer,
-          user: UserPublicProfileResponseDto.getFromUser(offer.user),
-        };
-      });
+    const offer = await this.offersRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['user'],
+    });
+    if (offer.user.id !== userId) {
+      throw new UnauthorizedException();
+    }
+    return {
+      ...offer,
+      user: UserPublicProfileResponseDto.getFromUser(offer.user),
+    };
   }
 
   async updateOne(id: number, offer: UpdateOfferDto) {

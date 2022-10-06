@@ -28,62 +28,52 @@ export class WishlistsService {
     createWishlistDto: CreateWishlistDto,
     userId: number,
   ): Promise<Wishlist> {
-    return this.usersRepository.findOneBy({ id: userId }).then((user) => {
-      return this.wishesRepository
-        .findBy({
-          id: In(createWishlistDto.itemsId),
-        })
-        .then((wishes) => {
-          const newWishlist = {
-            ...createWishlistDto,
-            owner: UserPublicProfileResponseDto.getFromUser(user),
-            items: wishes,
-          };
-          delete newWishlist.itemsId;
-          return this.create(newWishlist);
-        });
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    const wishes = await this.wishesRepository.findBy({
+      id: In(createWishlistDto.itemsId),
     });
+    const newWishlist = {
+      ...createWishlistDto,
+      owner: UserPublicProfileResponseDto.getFromUser(user),
+      items: wishes,
+    };
+    delete newWishlist.itemsId;
+    return this.create(newWishlist);
   }
 
   async findAll(userId: number): Promise<PublicWishlistDto[]> {
-    return this.wishlistRepository
-      .find({
-        where: {
-          owner: {
-            id: userId,
-          },
+    const wishlists = await this.wishlistRepository.find({
+      where: {
+        owner: {
+          id: userId,
         },
-        relations: ['owner', 'items'],
-      })
-      .then((wishlists) => {
-        return wishlists.map((wishlist) => {
-          return {
-            ...wishlist,
-            owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
-          };
-        });
-      });
+      },
+      relations: ['owner', 'items'],
+    });
+    return wishlists.map((wishlist) => {
+      return {
+        ...wishlist,
+        owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
+      };
+    });
   }
 
   async findOne(id: number, userId: number): Promise<PublicWishlistDto> {
-    return this.wishlistRepository
-      .findOne({
-        where: {
-          id: id,
-        },
-        relations: ['owner', 'items'],
-      })
-      .then((wishlist) => {
-        if (wishlist.owner.id !== userId) {
-          throw new UnauthorizedException(
-            'Нельзя получить доступ к чужому вишлисту',
-          );
-        }
-        return {
-          ...wishlist,
-          owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
-        };
-      });
+    const wishlist = await this.wishlistRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['owner', 'items'],
+    });
+    if (wishlist.owner.id !== userId) {
+      throw new UnauthorizedException(
+        'Нельзя получить доступ к чужому вишлисту',
+      );
+    }
+    return {
+      ...wishlist,
+      owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
+    };
   }
 
   async update(id: number, updateWishlistDto: UpdateWishlistDto) {
@@ -95,32 +85,25 @@ export class WishlistsService {
     updateWishlistDto: UpdateWishlistDto,
     userId: number,
   ) {
-    return this.wishlistRepository
-      .findOne({
-        where: { id: wishlistId },
-        relations: ['owner'],
-      })
-      .then((wishlist) => {
-        if (wishlist && wishlist.owner.id !== userId) {
-          throw new UnauthorizedException();
-        }
-        return this.wishesRepository
-          .findBy({
-            id: In(updateWishlistDto.itemsId),
-          })
-          .then((wishes) => {
-            console.log(wishes);
-            const newWishlist = {
-              ...updateWishlistDto,
-              id: wishlistId,
-              updatedAt: new Date(),
-              owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
-              items: wishes,
-            };
-            delete newWishlist.itemsId;
-            return this.wishlistRepository.save(newWishlist);
-          });
-      });
+    const wishlist = await this.wishlistRepository.findOne({
+      where: { id: wishlistId },
+      relations: ['owner'],
+    });
+    if (wishlist && wishlist.owner.id !== userId) {
+      throw new UnauthorizedException();
+    }
+    const wishes = await this.wishesRepository.findBy({
+      id: In(updateWishlistDto.itemsId),
+    });
+    const newWishlist = {
+      ...updateWishlistDto,
+      id: wishlistId,
+      updatedAt: new Date(),
+      owner: UserPublicProfileResponseDto.getFromUser(wishlist.owner),
+      items: wishes,
+    };
+    delete newWishlist.itemsId;
+    return this.wishlistRepository.save(newWishlist);
   }
 
   async remove(id: number) {
@@ -129,8 +112,8 @@ export class WishlistsService {
 
   async removeOne(wishlistId: number, userId: number) {
     // findOne проверяет, что это вишлист пользователя
-    return this.findOne(wishlistId, userId).then((wishlist) => {
-      return this.remove(wishlistId).then(() => wishlist);
-    });
+    const wishlist = await this.findOne(wishlistId, userId);
+    await this.remove(wishlistId);
+    return wishlist;
   }
 }

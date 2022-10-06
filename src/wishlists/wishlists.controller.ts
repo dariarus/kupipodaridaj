@@ -13,15 +13,11 @@ import { WishlistsService } from './wishlists.service';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { JwtGuard } from '../auth/passport/jwt.guard';
-import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)
-@Controller('wishlistlists') // на фронте именно такой роут
+@Controller('wishlistlists') // на фронте именно такой роут в Network
 export class WishlistsController {
-  constructor(
-    private readonly wishlistsService: WishlistsService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly wishlistsService: WishlistsService) {}
 
   @Post()
   create(@Req() req, @Body() createWishlistDto: CreateWishlistDto) {

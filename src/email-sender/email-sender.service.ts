@@ -25,15 +25,17 @@ export class EmailSenderService {
     message: string,
     html?: string,
   ): Promise<void> {
-    return this.transporter
-      .sendMail({
-        from: '"Daria R 👻" <kirena001829@yandex.ru>', // sender address
-        to: emails.join(), // list of receivers
-        subject: subject, // Subject line
-        text: message, // plain text body
-        html: html,
-      })
-      .then((info) => console.log('Message sent: %s', info.messageId))
-      .catch((err) => console.log(err, 'error sending email'));
+    const info = await this.transporter.sendMail({
+      from: '"Daria R 👻" <kirena001829@yandex.ru>', // sender address
+      to: emails.join(), // list of receivers
+      subject: subject, // Subject line
+      text: message, // plain text body
+      html: html,
+    });
+    if (!info) {
+      console.log('error sending email');
+      return;
+    }
+    console.log('Message sent: %s', info.messageId);
   }
 }

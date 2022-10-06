@@ -29,27 +29,6 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  // async create(user: CreateUserDto): Promise<SignupUserResponseDto> {
-  //   return this.authService.hashPassword(user.password).then((hash) => {
-  //     console.log(hash);
-  //     const newUserData = {
-  //       ...user,
-  //       password: hash,
-  //       createdAt: new Date().toISOString(),
-  //       updatedAt: new Date().toISOString(),
-  //     };
-  //     return this.userRepository.save(newUserData).then((newUser) => {
-  //       const result: SignupUserResponseDto = {
-  //         username: newUser.username,
-  //         email: newUser.email,
-  //         about: newUser.about,
-  //         avatar: newUser.avatar,
-  //       };
-  //       return result;
-  //     });
-  //   });
-  // }
-
   async findAll(): Promise<User[]> {
     return this.usersRepository.find();
   }
@@ -63,11 +42,10 @@ export class UsersService {
   async findByNamePublic(
     username: string,
   ): Promise<UserPublicProfileResponseDto> {
-    return this.usersRepository
-      .findOneBy({
-        username: username,
-      })
-      .then((user) => UserPublicProfileResponseDto.getFromUser(user));
+    const user = await this.usersRepository.findOneBy({
+      username: username,
+    });
+    return UserPublicProfileResponseDto.getFromUser(user);
   }
 
   async findByName(username: string): Promise<User> {
@@ -80,16 +58,12 @@ export class UsersService {
     const byEmail = this.usersRepository.findBy({
       email: findUserDto.query,
     });
-    return byEmail.then((usersByEmail) =>
-      this.usersRepository
-        .findBy({
-          username: findUserDto.query,
-        })
-        .then((usersByName) => usersByEmail.concat(usersByName))
-        .then((users) =>
-          users.map((user) => UserProfileResponseDto.getFromUser(user)),
-        ),
-    );
+    const usersByEmail = await byEmail;
+    const usersByName = await this.usersRepository.findBy({
+      username: findUserDto.query,
+    });
+    const users: User[] = usersByEmail.concat(usersByName);
+    return users.map((user) => UserProfileResponseDto.getFromUser(user));
   }
 
   async updateOne(id: number, updateUserDto: UpdateUserDto) {
@@ -107,22 +81,11 @@ export class UsersService {
   }
 
   async getWishes(username: string): Promise<UserWishesDto[]> {
-    return this.usersRepository
-      .findOne({
-        where: { username: username },
-        select: ['wishes'],
-        relations: ['wishes'],
-      })
-      .then((user) => {
-        return user.wishes;
-      });
-    // const wishesPromise = this.wishesRepository.findBy({
-    //   owner.username: username
-    // });
-    // console.log(username);
-    // return await userPromise.then((user) => {
-    //   console.log(user.wishes);
-    //   return user.wishes
-    // });
+    const user = await this.usersRepository.findOne({
+      where: { username: username },
+      select: ['wishes'],
+      relations: ['wishes'],
+    });
+    return user.wishes;
   }
 }

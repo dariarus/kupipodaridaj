@@ -23,18 +23,16 @@ export class WishesService {
   }
 
   async createOne(wish: CreateWishDto, userId: number): Promise<any> {
-    return this.usersRepository.findOneBy({ id: userId }).then((user) => {
-      const newWish = {
-        ...wish,
-        owner: user,
-      };
-      return this.create(newWish).then((createdWish) => {
-        return {
-          ...createdWish,
-          owner: UserPublicProfileResponseDto.getFromUser(user),
-        };
-      });
-    });
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    const newWish = {
+      ...wish,
+      owner: user,
+    };
+    const createdWish = await this.create(newWish);
+    return {
+      ...createdWish,
+      owner: UserPublicProfileResponseDto.getFromUser(user),
+    };
   }
 
   async findAll(): Promise<Wish[]> {
@@ -42,64 +40,54 @@ export class WishesService {
   }
 
   async findOne(id: number): Promise<WishPublicDto> {
-    return this.wishesRepository
-      .findOne({
-        where: {
-          id: id,
-        },
-        relations: ['owner', 'offers', 'offers.user'],
-      })
-      .then((wish) => {
-        const selectedWish = wish;
+    const selectedWish = await this.wishesRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['owner', 'offers', 'offers.user'],
+    });
+    return {
+      ...selectedWish,
+      owner: UserProfileResponseDto.getFromUser(selectedWish.owner),
+      offers: selectedWish.offers.map((offer) => {
         return {
-          ...selectedWish,
-          owner: UserProfileResponseDto.getFromUser(selectedWish.owner),
-          offers: selectedWish.offers.map((offer) => {
-            return {
-              ...offer,
-              user: UserProfileResponseDto.getFromUser(offer.user),
-            };
-          }),
+          ...offer,
+          user: UserProfileResponseDto.getFromUser(offer.user),
         };
-      });
+      }),
+    };
   }
 
   async findLast(): Promise<any> {
-    return this.wishesRepository
-      .find({
-        relations: ['owner'],
-        order: { id: 'desc' },
-        take: 10,
-      })
-      .then((wishes) => {
-        if (wishes && wishes.length !== 0) {
-          return wishes.map((wish) => {
-            return {
-              ...wish,
-              owner: UserProfileResponseDto.getFromUser(wish.owner),
-            };
-          });
-        }
+    const wishes = await this.wishesRepository.find({
+      relations: ['owner'],
+      order: { id: 'desc' },
+      take: 10,
+    });
+    if (wishes && wishes.length !== 0) {
+      return wishes.map((wish) => {
+        return {
+          ...wish,
+          owner: UserProfileResponseDto.getFromUser(wish.owner),
+        };
       });
+    }
   }
 
   async findTop(): Promise<any> {
-    return this.wishesRepository
-      .find({
-        relations: ['owner'],
-        order: { copied: 'desc' },
-        take: 10,
-      })
-      .then((wishes) => {
-        if (wishes && wishes.length !== 0) {
-          return wishes.map((wish) => {
-            return {
-              ...wish,
-              owner: UserProfileResponseDto.getFromUser(wish.owner),
-            };
-          });
-        }
+    const wishes = await this.wishesRepository.find({
+      relations: ['owner'],
+      order: { copied: 'desc' },
+      take: 10,
+    });
+    if (wishes && wishes.length !== 0) {
+      return wishes.map((wish) => {
+        return {
+          ...wish,
+          owner: UserProfileResponseDto.getFromUser(wish.owner),
+        };
       });
+    }
   }
 
   async update(id: number, updateWishDto: UpdateWishDto) {
@@ -111,49 +99,44 @@ export class WishesService {
     updateWishDto: UpdateWishDto,
     userId: number,
   ) {
-    this.findOne(wishId).then((updatingWish) => {
-      if (updatingWish.owner.id !== userId) {
-        throw new ForbiddenException('Нельзя редактировать чужие желания');
-      }
-      if (updatingWish.raised) {
-        throw new ForbiddenException(
-          'Сумма собранных средств зависит от заявок желающих скинуться',
-        );
-      }
-      if (
-        updateWishDto.price &&
-        updatingWish.offers &&
-        updatingWish.offers.length > 0
-      ) {
-        throw new ForbiddenException(
-          'Если есть заявки от скидывающихся, цену менять нельзя',
-        );
-      }
-      return this.update(wishId, updateWishDto).then(() => updateWishDto);
-    });
+    const updatingWish = await this.findOne(wishId);
+    if (updatingWish.owner.id !== userId) {
+      throw new ForbiddenException('Нельзя редактировать чужие желания');
+    }
+    if (updatingWish.raised) {
+      throw new ForbiddenException(
+        'Сумма собранных средств зависит от заявок желающих скинуться',
+      );
+    }
+    if (
+      updateWishDto.price &&
+      updatingWish.offers &&
+      updatingWish.offers.length > 0
+    ) {
+      throw new ForbiddenException(
+        'Если есть заявки от скидывающихся, цену менять нельзя',
+      );
+    }
+    await this.update(wishId, updateWishDto);
+    return updateWishDto;
   }
 
   async copyWish(wishId: number, userId: number) {
-    return this.findOne(wishId).then((wish) => {
-      const counter = wish.copied + 1;
-      return this.wishesRepository
-        .update(wishId, {
-          copied: counter,
-        })
-        .then(() => {
-          return this.usersRepository.findOneBy({ id: userId }).then((user) => {
-            const copiedWish = {
-              ...wish,
-              owner: UserPublicProfileResponseDto.getFromUser(user),
-              copied: 0,
-              raised: 0,
-              offers: [],
-            };
-            delete copiedWish.id;
-            return this.wishesRepository.save(copiedWish);
-          });
-        });
+    const wish = await this.findOne(wishId);
+    const counter = wish.copied + 1;
+    await this.wishesRepository.update(wishId, {
+      copied: counter,
     });
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    const copiedWish = {
+      ...wish,
+      owner: UserPublicProfileResponseDto.getFromUser(user),
+      copied: 0,
+      raised: 0,
+      offers: [],
+    };
+    delete copiedWish.id;
+    return this.wishesRepository.save(copiedWish);
   }
 
   async remove(id: number) {
@@ -161,11 +144,11 @@ export class WishesService {
   }
 
   async removeOne(wishId: number, userId) {
-    return this.findOne(wishId).then((wish) => {
-      if (wish.owner.id !== userId) {
-        throw new ForbiddenException('Нельзя удалять чужие желания');
-      }
-      return this.remove(wishId).then(() => wish);
-    });
+    const wish = await this.findOne(wishId);
+    if (wish.owner.id !== userId) {
+      throw new ForbiddenException('Нельзя удалять чужие желания');
+    }
+    await this.remove(wishId);
+    return wish;
   }
 }

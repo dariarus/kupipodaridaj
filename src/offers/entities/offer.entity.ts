@@ -30,7 +30,7 @@ export class Offer {
     scale: 2,
     transformer: new ColumnNumericTransformer(),
   })
-  @IsDecimal()
+  // @IsDecimal()
   @Min(0)
   amount: number;
 

@@ -14,15 +14,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { JwtGuard } from '../auth/passport/jwt.guard';
-import { AuthService } from '../auth/auth.service';
 
 @UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -45,15 +41,13 @@ export class UsersController {
   }
 
   @Get('me/wishes')
-  getOwnWishes(@Req() req) {
-    return this.usersService
-      .findOne(req.user.id)
-      .then((user) => this.usersService.getWishes(user.username));
+  async getOwnWishes(@Req() req) {
+    const user = await this.usersService.findOne(req.user.id);
+    return await this.usersService.getWishes(user.username);
   }
 
   @Get(':username/wishes')
   getWishes(@Param('username') username: string) {
-    console.log(username);
     return this.usersService.getWishes(username);
   }
 
