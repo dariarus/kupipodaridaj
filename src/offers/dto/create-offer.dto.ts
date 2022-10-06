@@ -1,7 +1,6 @@
-import { IsBoolean, IsDecimal, IsInt, Min } from 'class-validator';
+import { IsBoolean, IsInt, Min } from 'class-validator';
 
 export class CreateOfferDto {
-  // @IsDecimal()
   @Min(0)
   amount: number;
 

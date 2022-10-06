@@ -9,8 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Wish } from '../../wishes/entities/wish.entity';
-import { IsBoolean, IsDate, IsDecimal, Min } from 'class-validator';
-import { ColumnNumericTransformer } from '../../utils/column-numeric-transformer';
+import { IsBoolean, IsDate, IsInt, Min } from 'class-validator';
 
 @Entity()
 export class Offer {
@@ -25,12 +24,13 @@ export class Offer {
   @IsDate()
   updatedAt: Date;
 
-  @Column({
-    type: 'decimal',
-    scale: 2,
-    transformer: new ColumnNumericTransformer(),
-  })
-  // @IsDecimal()
+  // @Column({
+  //   type: 'decimal',
+  //   scale: 2,
+  //   transformer: new ColumnNumericTransformer(),
+  // })
+  @Column()
+  @IsInt()
   @Min(0)
   amount: number;
 
